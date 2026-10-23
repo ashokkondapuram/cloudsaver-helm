@@ -1,0 +1,91 @@
+# External PostgreSQL/Redis and pre-existing Kubernetes Secrets are required.
+# No secret values, databases or Redis instances are created by this chart.
+fullnameOverride: ''
+imagePullSecrets: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+serviceAccount:
+  annotations: {}
+  automountServiceAccountToken: false
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+migration:
+  enabled: true
+  existingSecret: platform-migration
+  secretKey: database-url
+  activeDeadlineSeconds: 600
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+ingress:
+  enabled: false
+  className: nginx
+  host: ''
+  tlsSecretName: ''
+  annotations: {}
+networkPolicy:
+  enabled: true
+  ingressController:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: ingress-nginx
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/component: controller
+  cloudsaverNamespaces:
+  - cloudsaver
+images:
+  identity:
+    repository: zafin-platform-identity
+    tag: 1.0.0
+    digest: ''
+    pullPolicy: IfNotPresent
+  portal:
+    repository: zafin-platform-portal
+    tag: 1.0.0
+    digest: ''
+    pullPolicy: IfNotPresent
+identitySecret: platform-identity
+portalSecret: platform-portal
+config:
+  PLATFORM_KEY_PEPPER_VERSION: '1'
+  PLATFORM_KEYVAULT_URL: ''
+  PLATFORM_IDENTITY_CACHE_SECONDS: '15'
+  PLATFORM_DB_POOL_SIZE: '4'
+  PLATFORM_DB_MAX_OVERFLOW: '4'
+entra:
+  tenantId: ''
+  clientId: ''
+  audience: ''
+  apiScope: ''
+publicUrl: https://platform.example.com
+components:
+  identity-service:
+    enabled: true
+    replicas: 2
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  platform-portal:
+    enabled: true
+    replicas: 1
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []

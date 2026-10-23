@@ -1,0 +1,15 @@
+{{- if and .Values.features.scheduledScans (not (and (index .Values.components "scan-worker").enabled (index .Values.components "scan-scheduler").enabled (index .Values.components "delivery-dispatcher").enabled)) -}}
+{{ fail "Scheduled scans require scan-worker, scan-scheduler and delivery-dispatcher" }}
+{{- end -}}
+{{- if and .Values.features.interactiveJobs (not (and (index .Values.components "scan-worker").enabled (index .Values.components "delivery-dispatcher").enabled)) -}}
+{{ fail "Interactive jobs require scan-worker and delivery-dispatcher" }}
+{{- end -}}
+{{- if and .Values.features.delivery (not (index .Values.components "delivery-dispatcher").enabled) -}}
+{{ fail "Delivery requires delivery-dispatcher" }}
+{{- end -}}
+{{- if and .Values.features.automatedAlerts (not .Values.features.delivery) -}}
+{{ fail "Automated alerts require delivery" }}
+{{- end -}}
+{{- if eq .Values.runtimeSecret .Values.migration.existingSecret -}}
+{{ fail "Use separate runtime and migration Secrets" }}
+{{- end -}}

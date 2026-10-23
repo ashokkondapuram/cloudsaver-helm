@@ -1,0 +1,172 @@
+# External PostgreSQL/Redis and pre-existing Kubernetes Secrets are required.
+# No secret values, databases or Redis instances are created by this chart.
+fullnameOverride: ''
+imagePullSecrets: []
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+serviceAccount:
+  annotations: {}
+  automountServiceAccountToken: false
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+migration:
+  enabled: true
+  existingSecret: cloudsaver-migration
+  secretKey: database-url
+  activeDeadlineSeconds: 600
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+ingress:
+  enabled: false
+  className: nginx
+  host: ''
+  tlsSecretName: ''
+  annotations: {}
+networkPolicy:
+  enabled: true
+  ingressController:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: ingress-nginx
+    podSelector:
+      matchLabels:
+        app.kubernetes.io/component: controller
+images:
+  python:
+    repository: cloudsaver-python
+    tag: 1.3.0
+    digest: ''
+    pullPolicy: IfNotPresent
+  dashboard:
+    repository: cloudsaver-web-dashboard
+    tag: 1.3.0
+    digest: ''
+    pullPolicy: IfNotPresent
+runtimeSecret: cloudsaver-runtime
+platform:
+  url: http://platform-identity-service.platform.svc.cluster.local:8005
+config:
+  CLOUDSAVER_AUTH_MODE: workspace
+  CLOUDSAVER_ENTRA_AUDIENCE: ''
+  CLOUDSAVER_ALLOWED_ORIGINS: ''
+  CLOUDSAVER_CLOUD_IDENTITY: managed_identity
+  AZURE_CLIENT_ID: ''
+  CLOUDSAVER_AZURE_ACCESS: federated
+  CLOUDSAVER_AZURE_APP_CLIENT_ID: ''
+  CLOUDSAVER_AWS_HUB_ROLE_ARN: ''
+  CLOUDSAVER_AWS_TOKEN_AUDIENCE: api://AzureADTokenExchange
+  CLOUDSAVER_GCP_WORKLOAD_PROVIDER: ''
+  CLOUDSAVER_GCP_TOKEN_AUDIENCE: api://AzureADTokenExchange
+  CLOUDSAVER_IDENTITY_CACHE_SECONDS: '15'
+  CLOUDSAVER_DB_POOL_SIZE: '2'
+  CLOUDSAVER_DB_MAX_OVERFLOW: '3'
+  CLOUDSAVER_DB_POOL_TIMEOUT: '5'
+  CLOUDSAVER_DB_POOL_RECYCLE: '1800'
+  CLOUDSAVER_AI_TARGETS: '[]'
+  CLOUDSAVER_AI_HOURLY_ATTEMPTS: '10'
+  CLOUDSAVER_AI_BATCH_TICK_SECONDS: '30'
+  CLOUDSAVER_GITOPS_TARGETS: '[]'
+  CLOUDSAVER_PLAN_POLICY: '{}'
+  CLOUDSAVER_NOTIFICATION_TARGETS: '[]'
+  CLOUDSAVER_SCHEDULER_TICK_SECONDS: '300'
+features:
+  scheduledScans: false
+  automatedAlerts: false
+  interactiveJobs: false
+  delivery: false
+  ai: false
+  gitopsPublish: false
+components:
+  api-gateway:
+    enabled: true
+    replicas: 2
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  tenant-service:
+    enabled: true
+    replicas: 1
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  scanner-service:
+    enabled: true
+    replicas: 1
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  analytics-service:
+    enabled: true
+    replicas: 2
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  notification-service:
+    enabled: true
+    replicas: 1
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  web-dashboard:
+    enabled: true
+    replicas: 2
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  scan-worker:
+    enabled: false
+    replicas: 1
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  scan-scheduler:
+    enabled: false
+    replicas: 1
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []
+  delivery-dispatcher:
+    enabled: false
+    replicas: 1
+    podAnnotations: {}
+    serviceAccountAnnotations: {}
+    resources: {}
+    secretEnv: {}
+    extraVolumes: []
+    extraVolumeMounts: []

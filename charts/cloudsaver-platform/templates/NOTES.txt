@@ -1,0 +1,5 @@
+Release {{ .Release.Name }} is configured for external PostgreSQL and Redis.
+Migrations use only migration.existingSecret; runtime pods never receive that owner DSN.
+{{ if .Values.ingress.enabled }}HTTPS endpoint: https://{{ .Values.ingress.host }}{{ else }}Ingress is disabled. Configure TLS ingress before exposing this installation.{{ end }}
+External Secret rotation requires an explicit rollout restart. See the cloudsaver-helm repository README.
+A successful render/install is not live cloud, Entra, billing or restore acceptance.

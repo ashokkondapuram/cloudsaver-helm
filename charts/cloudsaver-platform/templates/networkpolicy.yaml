@@ -1,0 +1,67 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- $root := . -}}
+{{- $ports := dict "identity-service" 8005 "platform-portal" 3100 -}}
+
+{{- $consumers := dict "identity-service" (list "platform-portal") -}}
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "app.fullname" . }}-deny-ingress
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes: [Ingress]
+  ingress: []
+{{- range $component, $port := $ports }}
+{{- if (index $root.Values.components $component).enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "app.name" (dict "root" $root "component" $component) }}
+  labels:
+    {{- include "app.labels" $root | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "app.selector" (dict "root" $root "component" $component) | nindent 6 }}
+  policyTypes: [Ingress]
+  ingress:
+    - ports:
+        - {protocol: TCP, port: {{ $port }}}
+      from:
+        {{- if or (eq $component "web-dashboard") (eq $component "platform-portal") }}
+        - {{ toYaml $root.Values.networkPolicy.ingressController | nindent 10 | trim }}
+        {{- else }}
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: {{ $root.Chart.Name }}
+              app.kubernetes.io/instance: {{ $root.Release.Name }}
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values: {{ toJson (index $consumers $component) }}
+        {{- if eq $component "identity-service" }}
+        {{- range $namespace := $root.Values.networkPolicy.cloudsaverNamespaces }}
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $namespace | quote }}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: cloudsaver
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values: [api-gateway, tenant-service, scanner-service, analytics-service, notification-service]
+        {{- end }}
+        {{- end }}
+        {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

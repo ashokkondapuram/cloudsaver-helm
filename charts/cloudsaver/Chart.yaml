@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cloudsaver
+description: CloudSaver APIs, customer dashboard and optional workers
+type: application
+version: 0.1.0
+appVersion: 1.3.0
+kubeVersion: '>=1.26.0-0'

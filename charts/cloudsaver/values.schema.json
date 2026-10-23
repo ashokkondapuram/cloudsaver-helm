@@ -1,0 +1,1382 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "fullnameOverride",
+    "imagePullSecrets",
+    "podAnnotations",
+    "nodeSelector",
+    "tolerations",
+    "affinity",
+    "serviceAccount",
+    "resources",
+    "migration",
+    "ingress",
+    "networkPolicy",
+    "images",
+    "runtimeSecret",
+    "platform",
+    "config",
+    "features",
+    "components"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "fullnameOverride": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "images": {
+      "type": "object",
+      "required": [
+        "python",
+        "dashboard"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "python": {
+          "type": "object",
+          "required": [
+            "repository",
+            "tag",
+            "digest",
+            "pullPolicy"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^(sha256:[a-f0-9]{64})?$"
+            },
+            "pullPolicy": {
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ]
+            }
+          }
+        },
+        "dashboard": {
+          "type": "object",
+          "required": [
+            "repository",
+            "tag",
+            "digest",
+            "pullPolicy"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^(sha256:[a-f0-9]{64})?$"
+            },
+            "pullPolicy": {
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+          }
+        }
+      }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "nodeSelector": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "affinity": {
+      "type": "object"
+    },
+    "serviceAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "annotations",
+        "automountServiceAccountToken"
+      ],
+      "properties": {
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "automountServiceAccountToken": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources": {
+      "type": "object"
+    },
+    "migration": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "existingSecret",
+        "secretKey",
+        "activeDeadlineSeconds",
+        "resources"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "existingSecret": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 63,
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "secretKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activeDeadlineSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 3600
+        },
+        "resources": {
+          "type": "object"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "className",
+        "host",
+        "tlsSecretName",
+        "annotations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "className": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string",
+          "pattern": "^$|^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+        },
+        "tlsSecretName": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "className": {
+                "minLength": 1
+              },
+              "host": {
+                "minLength": 1
+              },
+              "tlsSecretName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 63,
+                "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "networkPolicy": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "ingressController"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "ingressController": {
+          "type": "object",
+          "required": [
+            "namespaceSelector",
+            "podSelector"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "namespaceSelector": {
+              "type": "object"
+            },
+            "podSelector": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9_]*$",
+        "not": {
+          "enum": [
+            "CLOUDSAVER_DATABASE_URL",
+            "CLOUDSAVER_MIGRATION_URL",
+            "REDIS_URL",
+            "CLOUDSAVER_IDENTITY_TOKEN",
+            "CLOUDSAVER_TRUSTED_CALLERS",
+            "CLOUDSAVER_TRUSTED_PROXIES",
+            "API_GATEWAY_URL",
+            "TMPDIR",
+            "CLOUDSAVER_ENVIRONMENT",
+            "CLOUDSAVER_MODE",
+            "CLOUDSAVER_TENANT_REGISTRY",
+            "CLOUDSAVER_TENANTS",
+            "CLOUDSAVER_KEY_VERIFIER",
+            "CLOUDSAVER_DIRECTORY_MODE",
+            "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+            "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+            "CLOUDSAVER_IDENTITY_URL",
+            "CLOUDSAVER_INTERACTIVE_JOBS",
+            "CLOUDSAVER_SCHEDULED_SCANS",
+            "CLOUDSAVER_AUTOMATED_ALERTS",
+            "CLOUDSAVER_DELIVERY_ENABLED",
+            "CLOUDSAVER_AI_ENABLED",
+            "CLOUDSAVER_GITOPS_PUBLISH",
+            "SCANNER_SERVICE_URL",
+            "TENANT_SERVICE_URL",
+            "ANALYTICS_SERVICE_URL",
+            "NOTIFICATION_SERVICE_URL",
+            "NO_PROXY"
+          ]
+        }
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "components": {
+      "type": "object",
+      "required": [
+        "api-gateway",
+        "tenant-service",
+        "scanner-service",
+        "analytics-service",
+        "notification-service",
+        "web-dashboard",
+        "scan-worker",
+        "scan-scheduler",
+        "delivery-dispatcher"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "api-gateway": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "tenant-service": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "scanner-service": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "analytics-service": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "notification-service": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "web-dashboard": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "scan-worker": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "scan-scheduler": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "delivery-dispatcher": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "CLOUDSAVER_DATABASE_URL",
+                    "CLOUDSAVER_MIGRATION_URL",
+                    "REDIS_URL",
+                    "CLOUDSAVER_IDENTITY_TOKEN",
+                    "CLOUDSAVER_TRUSTED_CALLERS",
+                    "CLOUDSAVER_TRUSTED_PROXIES",
+                    "API_GATEWAY_URL",
+                    "TMPDIR",
+                    "CLOUDSAVER_ENVIRONMENT",
+                    "CLOUDSAVER_MODE",
+                    "CLOUDSAVER_TENANT_REGISTRY",
+                    "CLOUDSAVER_TENANTS",
+                    "CLOUDSAVER_KEY_VERIFIER",
+                    "CLOUDSAVER_DIRECTORY_MODE",
+                    "CLOUDSAVER_PROVIDER_SCOPED_KEYS",
+                    "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK",
+                    "CLOUDSAVER_IDENTITY_URL",
+                    "CLOUDSAVER_INTERACTIVE_JOBS",
+                    "CLOUDSAVER_SCHEDULED_SCANS",
+                    "CLOUDSAVER_AUTOMATED_ALERTS",
+                    "CLOUDSAVER_DELIVERY_ENABLED",
+                    "CLOUDSAVER_AI_ENABLED",
+                    "CLOUDSAVER_GITOPS_PUBLISH",
+                    "SCANNER_SERVICE_URL",
+                    "TENANT_SERVICE_URL",
+                    "ANALYTICS_SERVICE_URL",
+                    "NOTIFICATION_SERVICE_URL",
+                    "NO_PROXY"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "runtimeSecret": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "platform": {
+      "type": "object",
+      "required": [
+        "url"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "pattern": "^https?://[^/]+(:[0-9]+)?$"
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheduledScans",
+        "automatedAlerts",
+        "interactiveJobs",
+        "delivery",
+        "ai",
+        "gitopsPublish"
+      ],
+      "properties": {
+        "scheduledScans": {
+          "type": "boolean"
+        },
+        "automatedAlerts": {
+          "type": "boolean"
+        },
+        "interactiveJobs": {
+          "type": "boolean"
+        },
+        "delivery": {
+          "type": "boolean"
+        },
+        "ai": {
+          "type": "boolean"
+        },
+        "gitopsPublish": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{{- if and .Values.ingress.enabled (ne .Values.publicUrl (printf "https://%s" .Values.ingress.host)) -}}
+{{ fail "publicUrl must match the HTTPS ingress host exactly" }}
+{{- end -}}
+{{- if or (eq .Values.identitySecret .Values.portalSecret) (eq .Values.identitySecret .Values.migration.existingSecret) (eq .Values.portalSecret .Values.migration.existingSecret) -}}
+{{ fail "Use separate identity, portal and migration Secrets" }}
+{{- end -}}

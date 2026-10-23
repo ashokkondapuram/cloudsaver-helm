@@ -1,0 +1,28 @@
+{{- $base := include "app.fullname" . -}}
+{{- $fixed := dict
+  "CLOUDSAVER_ENVIRONMENT" "production" "CLOUDSAVER_MODE" "azure" "CLOUDSAVER_TENANT_REGISTRY" "database"
+  "CLOUDSAVER_TENANTS" "[]" "CLOUDSAVER_KEY_VERIFIER" "identity" "CLOUDSAVER_DIRECTORY_MODE" "cutover"
+  "CLOUDSAVER_PROVIDER_SCOPED_KEYS" "true" "CLOUDSAVER_DISTRIBUTED_SCAN_LOCK" "true"
+  "CLOUDSAVER_IDENTITY_URL" .Values.platform.url
+  "CLOUDSAVER_INTERACTIVE_JOBS" (toString .Values.features.interactiveJobs)
+  "CLOUDSAVER_SCHEDULED_SCANS" (toString .Values.features.scheduledScans)
+  "CLOUDSAVER_AUTOMATED_ALERTS" (toString .Values.features.automatedAlerts)
+  "CLOUDSAVER_DELIVERY_ENABLED" (toString .Values.features.delivery)
+  "CLOUDSAVER_AI_ENABLED" (toString .Values.features.ai)
+  "CLOUDSAVER_GITOPS_PUBLISH" (toString .Values.features.gitopsPublish)
+  "SCANNER_SERVICE_URL" (printf "http://%s-scanner-service:8002" $base)
+  "TENANT_SERVICE_URL" (printf "http://%s-tenant-service:8001" $base)
+  "ANALYTICS_SERVICE_URL" (printf "http://%s-analytics-service:8003" $base)
+  "NOTIFICATION_SERVICE_URL" (printf "http://%s-notification-service:8004" $base)
+  "NO_PROXY" "localhost,127.0.0.1,169.254.169.254,.svc,.svc.cluster.local"
+  "no_proxy" "localhost,127.0.0.1,169.254.169.254,.svc,.svc.cluster.local" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $base }}-config
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+  {{- range $name, $value := mergeOverwrite (deepCopy .Values.config) $fixed }}
+  {{ $name }}: {{ $value | quote }}
+  {{- end }}

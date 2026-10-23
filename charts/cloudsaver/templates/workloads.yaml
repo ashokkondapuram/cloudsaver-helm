@@ -1,0 +1,176 @@
+{{- $root := . -}}
+{{- $defs := dict
+  "api-gateway" (dict "image" "python" "port" 8000 "command" (list "uvicorn" "services.gateway:create_app" "--factory" "--host" "0.0.0.0" "--port" "8000"))
+  "tenant-service" (dict "image" "python" "port" 8001 "command" (list "uvicorn" "services.tenant:create_app" "--factory" "--host" "0.0.0.0" "--port" "8001"))
+  "scanner-service" (dict "image" "python" "port" 8002 "command" (list "uvicorn" "services.scanner:create_app" "--factory" "--host" "0.0.0.0" "--port" "8002" "--workers" "1"))
+  "analytics-service" (dict "image" "python" "port" 8003 "command" (list "uvicorn" "services.analytics:create_app" "--factory" "--host" "0.0.0.0" "--port" "8003"))
+  "notification-service" (dict "image" "python" "port" 8004 "command" (list "uvicorn" "services.notification:create_app" "--factory" "--host" "0.0.0.0" "--port" "8004"))
+  "web-dashboard" (dict "image" "dashboard" "port" 3000 "command" (list ))
+  "scan-worker" (dict "image" "python" "port" 0 "command" (list "celery" "-A" "workers.tasks:celery_app" "worker" "--loglevel=WARNING" "--concurrency=1"))
+  "scan-scheduler" (dict "image" "python" "port" 0 "command" (list "celery" "-A" "workers.tasks:celery_app" "beat" "--loglevel=WARNING" "--schedule=/tmp/celerybeat-schedule"))
+  "delivery-dispatcher" (dict "image" "python" "port" 0 "command" (list "python" "-m" "workers.dispatcher"))
+-}}
+
+{{- range $component, $settings := .Values.components }}
+{{- if $settings.enabled }}
+{{- $ctx := dict "root" $root "component" $component -}}
+{{- $def := index $defs $component -}}
+{{- $node := or (eq $component "web-dashboard") (eq $component "platform-portal") -}}
+{{- $uid := ternary 1000 10001 $node -}}
+{{- $image := index $root.Values.images $def.image -}}
+{{ "\n" }}---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "app.name" $ctx }}
+  labels:
+    {{- include "app.selector" $ctx | nindent 4 }}
+  annotations:
+    {{- toYaml (mergeOverwrite (deepCopy $root.Values.serviceAccount.annotations) $settings.serviceAccountAnnotations) | nindent 4 }}
+automountServiceAccountToken: {{ $root.Values.serviceAccount.automountServiceAccountToken }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "app.name" $ctx }}
+  labels:
+    {{- include "app.labels" $root | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+spec:
+  replicas: {{ $settings.replicas }}
+  {{- if or (eq $component "platform-portal") (eq $component "scan-scheduler") }}
+  strategy: {type: Recreate}
+  {{- else }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
+  {{- end }}
+  revisionHistoryLimit: 3
+  progressDeadlineSeconds: 600
+  selector:
+    matchLabels:
+      {{- include "app.selector" $ctx | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app.selector" $ctx | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $root.Template.BasePath "/configmap.yaml") $root | sha256sum }}
+        {{- with (mergeOverwrite (deepCopy $root.Values.podAnnotations) $settings.podAnnotations) }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "app.name" $ctx }}
+      automountServiceAccountToken: {{ $root.Values.serviceAccount.automountServiceAccountToken }}
+      terminationGracePeriodSeconds: {{ ternary 660 45 (eq $component "scan-worker") }}
+      {{- with $root.Values.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ $uid }}
+        runAsGroup: {{ $uid }}
+        fsGroup: {{ $uid }}
+        seccompProfile: {type: RuntimeDefault}
+      {{- with $root.Values.nodeSelector }}
+      nodeSelector: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.tolerations }}
+      tolerations: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $root.Values.affinity }}
+      affinity: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $component }}
+          image: {{ include "app.image" $image | quote }}
+          imagePullPolicy: {{ $image.pullPolicy }}
+          {{- if $def.command }}
+          command: {{ toJson $def.command }}
+          {{- end }}
+          securityContext:
+            {{- include "app.security" $root | nindent 12 }}
+          {{- if and (not $node) (ne $component "migrate") }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "app.fullname" $root }}-config
+          {{- end }}
+          env:
+            - name: TMPDIR
+              value: /tmp
+            {{- include "app.env" $ctx | nindent 12 }}
+          resources:
+            {{- toYaml (mergeOverwrite (deepCopy $root.Values.resources) $settings.resources) | nindent 12 }}
+          {{- if $def.port }}
+          ports:
+            - {name: http, containerPort: {{ $def.port }}}
+          startupProbe:
+            httpGet:
+              path: {{ ternary "/api/healthz" (ternary "/" "/healthz" (eq $component "web-dashboard")) (eq $component "platform-portal") }}
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: {{ ternary "/api/healthz" (ternary "/" "/healthz" (eq $component "web-dashboard")) (eq $component "platform-portal") }}
+              port: http
+            timeoutSeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: {{ ternary "/api/healthz" (ternary "/" "/readyz" (eq $component "web-dashboard")) (eq $component "platform-portal") }}
+              port: http
+            timeoutSeconds: 10
+            periodSeconds: 10
+          {{- end }}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+            {{- if $node }}
+            - {name: next-cache, mountPath: /app/.next/cache}
+            {{- end }}
+            {{- with $settings.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {sizeLimit: 128Mi}
+        {{- if $node }}
+        - name: next-cache
+          emptyDir: {sizeLimit: 256Mi}
+        {{- end }}
+        {{- with $settings.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+{{- if $def.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "app.name" $ctx }}
+  labels:
+    {{- include "app.selector" $ctx | nindent 4 }}
+spec:
+  type: ClusterIP
+  # Headless DNS exposes actual caller pod IPs to the application trust resolver.
+  clusterIP: None
+  selector:
+    {{- include "app.selector" $ctx | nindent 4 }}
+  ports:
+    - {name: http, port: {{ $def.port }}, targetPort: http}
+{{- end }}
+{{- if gt (int $settings.replicas) 1 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "app.name" $ctx }}
+  labels:
+    {{- include "app.selector" $ctx | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      {{- include "app.selector" $ctx | nindent 6 }}
+{{- end }}
+{{- end }}
+{{- end }}

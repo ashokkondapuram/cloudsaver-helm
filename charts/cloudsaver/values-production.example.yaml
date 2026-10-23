@@ -1,0 +1,24 @@
+# EXAMPLE identifiers/domains only. Contains no credentials.
+# Set real immutable registry references, Entra IDs and ingress settings.
+images:
+  python:
+    repository: registry.example.com/cloudsaver-python
+    tag: 1.3.0
+  dashboard:
+    repository: registry.example.com/cloudsaver-web-dashboard
+    tag: 1.3.0
+runtimeSecret: cloudsaver-runtime
+platform:
+  url: http://platform-identity-service.platform.svc.cluster.local:8005
+config:
+  AZURE_CLIENT_ID: 11111111-1111-4111-8111-111111111111
+  CLOUDSAVER_AZURE_APP_CLIENT_ID: 22222222-2222-4222-8222-222222222222
+ingress:
+  enabled: true
+  className: nginx
+  host: cloudsaver.example.com
+  tlsSecretName: cloudsaver-tls
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/proxy-body-size: 2m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '180'

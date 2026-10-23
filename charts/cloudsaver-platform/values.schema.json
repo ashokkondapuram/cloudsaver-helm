@@ -1,0 +1,592 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "fullnameOverride",
+    "imagePullSecrets",
+    "podAnnotations",
+    "nodeSelector",
+    "tolerations",
+    "affinity",
+    "serviceAccount",
+    "resources",
+    "migration",
+    "ingress",
+    "networkPolicy",
+    "images",
+    "identitySecret",
+    "portalSecret",
+    "config",
+    "entra",
+    "publicUrl",
+    "components"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "fullnameOverride": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "images": {
+      "type": "object",
+      "required": [
+        "identity",
+        "portal"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "type": "object",
+          "required": [
+            "repository",
+            "tag",
+            "digest",
+            "pullPolicy"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^(sha256:[a-f0-9]{64})?$"
+            },
+            "pullPolicy": {
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ]
+            }
+          }
+        },
+        "portal": {
+          "type": "object",
+          "required": [
+            "repository",
+            "tag",
+            "digest",
+            "pullPolicy"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "repository": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tag": {
+              "type": "string",
+              "minLength": 1
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^(sha256:[a-f0-9]{64})?$"
+            },
+            "pullPolicy": {
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+          }
+        }
+      }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "nodeSelector": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "tolerations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "affinity": {
+      "type": "object"
+    },
+    "serviceAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "annotations",
+        "automountServiceAccountToken"
+      ],
+      "properties": {
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "automountServiceAccountToken": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources": {
+      "type": "object"
+    },
+    "migration": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "existingSecret",
+        "secretKey",
+        "activeDeadlineSeconds",
+        "resources"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "existingSecret": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 63,
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "secretKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activeDeadlineSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 3600
+        },
+        "resources": {
+          "type": "object"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "className",
+        "host",
+        "tlsSecretName",
+        "annotations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "className": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string",
+          "pattern": "^$|^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+        },
+        "tlsSecretName": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "className": {
+                "minLength": 1
+              },
+              "host": {
+                "minLength": 1
+              },
+              "tlsSecretName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 63,
+                "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "networkPolicy": {
+      "type": "object",
+      "required": [
+        "enabled",
+        "ingressController",
+        "cloudsaverNamespaces"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "ingressController": {
+          "type": "object",
+          "required": [
+            "namespaceSelector",
+            "podSelector"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "namespaceSelector": {
+              "type": "object"
+            },
+            "podSelector": {
+              "type": "object"
+            }
+          }
+        },
+        "cloudsaverNamespaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+          }
+        }
+      }
+    },
+    "config": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Z][A-Z0-9_]*$",
+        "not": {
+          "enum": [
+            "PLATFORM_IDENTITY_DATABASE_URL",
+            "PLATFORM_IDENTITY_MIGRATION_URL",
+            "PLATFORM_REDIS_URL",
+            "PLATFORM_IDENTITY_CALLERS",
+            "PLATFORM_KEY_PEPPER",
+            "PLATFORM_PORTAL_TOKEN",
+            "PORTAL_ENTRA_CLIENT_SECRET",
+            "IDENTITY_SERVICE_URL",
+            "PLATFORM_ENVIRONMENT",
+            "PLATFORM_PORTAL_AUTH",
+            "PORTAL_PUBLIC_URL",
+            "PORTAL_ENTRA_TENANT_ID",
+            "PORTAL_ENTRA_CLIENT_ID",
+            "PORTAL_ENTRA_API_SCOPE",
+            "TMPDIR",
+            "PLATFORM_OPERATOR_TENANT_ID",
+            "PLATFORM_IDENTITY_AUDIENCE",
+            "PLATFORM_PUBLIC_URL",
+            "PLATFORM_PROVIDER_SCOPED_KEYS",
+            "PLATFORM_BILLING_ENABLED",
+            "PLATFORM_BILLING_PROVIDER"
+          ]
+        }
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "components": {
+      "type": "object",
+      "required": [
+        "identity-service",
+        "platform-portal"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "identity-service": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "PLATFORM_IDENTITY_DATABASE_URL",
+                    "PLATFORM_IDENTITY_MIGRATION_URL",
+                    "PLATFORM_REDIS_URL",
+                    "PLATFORM_IDENTITY_CALLERS",
+                    "PLATFORM_KEY_PEPPER",
+                    "PLATFORM_PORTAL_TOKEN",
+                    "PORTAL_ENTRA_CLIENT_SECRET",
+                    "IDENTITY_SERVICE_URL",
+                    "PLATFORM_ENVIRONMENT",
+                    "PLATFORM_PORTAL_AUTH",
+                    "PORTAL_PUBLIC_URL",
+                    "PORTAL_ENTRA_TENANT_ID",
+                    "PORTAL_ENTRA_CLIENT_ID",
+                    "PORTAL_ENTRA_API_SCOPE",
+                    "TMPDIR",
+                    "PLATFORM_OPERATOR_TENANT_ID",
+                    "PLATFORM_IDENTITY_AUDIENCE",
+                    "PLATFORM_PUBLIC_URL",
+                    "PLATFORM_PROVIDER_SCOPED_KEYS",
+                    "PLATFORM_BILLING_ENABLED",
+                    "PLATFORM_BILLING_PROVIDER"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "platform-portal": {
+          "type": "object",
+          "required": [
+            "enabled",
+            "replicas",
+            "podAnnotations",
+            "serviceAccountAnnotations",
+            "resources",
+            "secretEnv",
+            "extraVolumes",
+            "extraVolumeMounts"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1
+            },
+            "podAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "serviceAccountAnnotations": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "resources": {
+              "type": "object"
+            },
+            "secretEnv": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^[A-Z][A-Z0-9_]*$",
+                "not": {
+                  "enum": [
+                    "PLATFORM_IDENTITY_DATABASE_URL",
+                    "PLATFORM_IDENTITY_MIGRATION_URL",
+                    "PLATFORM_REDIS_URL",
+                    "PLATFORM_IDENTITY_CALLERS",
+                    "PLATFORM_KEY_PEPPER",
+                    "PLATFORM_PORTAL_TOKEN",
+                    "PORTAL_ENTRA_CLIENT_SECRET",
+                    "IDENTITY_SERVICE_URL",
+                    "PLATFORM_ENVIRONMENT",
+                    "PLATFORM_PORTAL_AUTH",
+                    "PORTAL_PUBLIC_URL",
+                    "PORTAL_ENTRA_TENANT_ID",
+                    "PORTAL_ENTRA_CLIENT_ID",
+                    "PORTAL_ENTRA_API_SCOPE",
+                    "TMPDIR",
+                    "PLATFORM_OPERATOR_TENANT_ID",
+                    "PLATFORM_IDENTITY_AUDIENCE",
+                    "PLATFORM_PUBLIC_URL",
+                    "PLATFORM_PROVIDER_SCOPED_KEYS",
+                    "PLATFORM_BILLING_ENABLED",
+                    "PLATFORM_BILLING_PROVIDER"
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "key"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 63,
+                    "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "extraVolumes": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "extraVolumeMounts": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "identitySecret": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "portalSecret": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "publicUrl": {
+      "type": "string",
+      "pattern": "^https://[a-zA-Z0-9.-]+(:[0-9]+)?$"
+    },
+    "entra": {
+      "type": "object",
+      "required": [
+        "tenantId",
+        "clientId",
+        "audience",
+        "apiScope"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tenantId": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "clientId": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "audience": {
+          "type": "string",
+          "minLength": 1
+        },
+        "apiScope": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
