@@ -46,12 +46,12 @@ networkPolicy:
 images:
   python:
     repository: cloudsaver-python
-    tag: 1.3.0
+    tag: 1.8.0
     digest: ''
     pullPolicy: IfNotPresent
   dashboard:
     repository: cloudsaver-web-dashboard
-    tag: 1.3.0
+    tag: 1.8.0
     digest: ''
     pullPolicy: IfNotPresent
 runtimeSecret: cloudsaver-runtime
@@ -81,6 +81,14 @@ config:
   CLOUDSAVER_PLAN_POLICY: '{}'
   CLOUDSAVER_NOTIFICATION_TARGETS: '[]'
   CLOUDSAVER_SCHEDULER_TICK_SECONDS: '300'
+  CLOUDSAVER_DIRECTORY_MAX_LAG_SECONDS: '30'
+  CLOUDSAVER_AUTO_BILLING_SYNC: 'true'
+  CLOUDSAVER_COMMITMENT_SYNC: 'true'
+  CLOUDSAVER_PLATFORM_OUTBOX_DISPATCH: 'false'
+  CLOUDSAVER_FINOPS_AUTOPILOT: 'false'
+  CLOUDSAVER_AGENT_ENABLED: 'false'
+  CLOUDSAVER_LIVE_EVIDENCE_ENABLED: 'false'
+  CLOUDSAVER_LIVE_EVIDENCE_MAX_RESOURCES: '25'
 features:
   scheduledScans: false
   automatedAlerts: false

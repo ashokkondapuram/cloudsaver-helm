@@ -7,6 +7,9 @@
 {{- else }}
 {{ include "app.secret" (dict "env" "CLOUDSAVER_DATABASE_URL" "secret" $root.Values.runtimeSecret "key" "database-url") }}
 {{ include "app.secret" (dict "env" "REDIS_URL" "secret" $root.Values.runtimeSecret "key" (ternary "redis-gateway-url" "redis-worker-url" (eq $component "api-gateway"))) }}
+{{- if ne $component "api-gateway" }}
+{{ include "app.secret" (dict "env" "CLOUDSAVER_PROVIDER_REDIS_URL" "secret" $root.Values.runtimeSecret "key" "redis-worker-url") }}
+{{- end }}
 {{- $callers := dict "api-gateway" "gateway-token" "tenant-service" "tenant-token" "scanner-service" "scanner-token" "analytics-service" "analytics-token" "notification-service" "notification-token" -}}
 {{- if hasKey $callers $component }}
 {{ include "app.secret" (dict "env" "CLOUDSAVER_IDENTITY_TOKEN" "secret" $root.Values.runtimeSecret "key" (get $callers $component)) }}

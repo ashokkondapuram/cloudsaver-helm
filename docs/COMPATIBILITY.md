@@ -1,6 +1,6 @@
 # Application compatibility and deployment gates
 
-The charts were extracted from the local Helm work against application commit `6fc05bb3215a300bbec3b05218614dce35a4403d` in `ashokkondapuram/project`. They target the current documented CloudSaver 1.3.0 / Platform 1.0.0 configuration contracts. No application code or credentials are copied into this repository.
+The charts target CloudSaver **1.8.0** at commit `7061f4196e8dfa50fbb2532e3606d24517fd3a8d` in [ashokkondapuram/cloudsaver](https://github.com/ashokkondapuram/cloudsaver). Environment contracts: [DEPLOYMENT_ENVIRONMENT.md](DEPLOYMENT_ENVIRONMENT.md) (application repo) and [docs/DEPLOYMENT_ENVIRONMENT.md](DEPLOYMENT_ENVIRONMENT.md) (this repo).
 
 Static Helm and Kubernetes validation proves manifest structure/configuration contracts. It does not prove that the source application's current images start successfully.
 
