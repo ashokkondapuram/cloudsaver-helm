@@ -3,10 +3,10 @@
 images:
   python:
     repository: registry.example.com/cloudsaver-python
-    tag: 1.8.0
+    tag: 1.8.1
   dashboard:
     repository: registry.example.com/cloudsaver-web-dashboard
-    tag: 1.8.0
+    tag: 1.8.1
 runtimeSecret: cloudsaver-runtime
 platform:
   url: http://platform-identity-service.platform.svc.cluster.local:8005

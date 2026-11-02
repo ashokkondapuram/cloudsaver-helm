@@ -1,6 +1,6 @@
 # CloudSaver Helm charts
 
-Independent Kubernetes deployment charts for [CloudSaver](https://github.com/ashokkondapuram/project). Chart version **0.1.0**, targeting CloudSaver **1.3.0** and Platform **1.0.0** configuration contracts. Application images and databases are managed separately.
+Independent Kubernetes deployment charts for [CloudSaver](https://github.com/ashokkondapuram/cloudsaver). Chart version **0.1.1**, targeting CloudSaver **1.8.1** and Platform **1.0.0** configuration contracts. Application images and databases are managed separately.
 
 | Chart | Workloads | Default replicas |
 |---|---|---|

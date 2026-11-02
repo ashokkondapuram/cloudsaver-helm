@@ -46,12 +46,12 @@ networkPolicy:
 images:
   python:
     repository: cloudsaver-python
-    tag: 1.8.0
+    tag: 1.8.1
     digest: ''
     pullPolicy: IfNotPresent
   dashboard:
     repository: cloudsaver-web-dashboard
-    tag: 1.8.0
+    tag: 1.8.1
     digest: ''
     pullPolicy: IfNotPresent
 runtimeSecret: cloudsaver-runtime
